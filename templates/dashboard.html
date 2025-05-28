@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+    <head> 
+        <meta charset="utf-8">     
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>Dashboard</title> 
+
+        <meta name="author" content="Jet Le">
+        <meta name="description" content="">
+        <meta name="keywords" content="...">
+
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+
+    <body>
+        <header>
+                <div class="header-left">
+                    <span class="logo"></span>
+                </div>
+                <div class="header-middle">
+                    <span class="date">&#128467;&#65039;&nbsp; May 3rd, 2025</span>
+                </div>
+                <div class="header-right">
+                    <svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"></path>
+                    </svg>  
+                </div>
+        </header>
+
+        <!-- Heading and tracking -->
+        <section class="intro-section">
+
+            <div class="title-section">
+                <h1 class="title">Rise and Grind, <span class="highlight">Jet!</span></h1>
+                <p class="subtitle">Ready to track some job applications? Take some time here!</p>
+            </div>
+
+            <div class="status-cards">
+                <div class="status-card rejected">
+                    <div class="status-label">Rejected</div>
+                    <div class="status-count">0</div>
+                </div>
+                <div class="status-card pending">
+                    <div class="status-label">Pending</div>
+                    <div class="status-count">0</div>
+                </div>
+                <div class="status-card accepted">
+                    <div class="status-label">Accepted</div>
+                    <div class="status-count">0</div>
+                </div>
+            </div>
+
+        </section>
+
+
+
+        <!-- Application section -->
+        <section class="application-sections">
+            <!-- Controls -->
+            <section class="controls">
+                <button class="add-button" onclick="addApplication()">+</button>
+                <button class="filter-button" onclick="toggleFilter()">
+                    <svg class="filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"></polygon>
+                    </svg>
+                </button>
+            </section>
+
+            <section class="job-applications">
+
+                <div class="job-entry">
+                    <div class="empty-state">
+                        Click the + button to track your first job application!
+                    </div>
+                </div>
+                <div class="job-entry">
+                    <div class="empty-state">
+                        Your applications will appear here :)
+                    </div>
+                </div>
+            </section>
+        </section>
+    </body>
+
+<script>
+    // Date functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCurrentDate();
+    });
+
+    function updateCurrentDate() {
+        const dateElement = document.querySelector('.date');
+        const today = new Date();
+        const day = today.getDate();
+        const month = today.toLocaleString('default', { month: 'long' });
+        const year = today.getFullYear();
+        
+        // Add ordinal suffix
+        const suffix = getOrdinalSuffix(day);
+        
+        // Update the date display
+        dateElement.innerHTML = `&#128467;&#65039;&nbsp; ${month} ${day}${suffix}, ${year}`;
+    }
+
+    function getOrdinalSuffix(day) {
+        if (day >= 11 && day <= 13) return 'th';
+        switch (day % 10) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
+        }
+    }
+
+    function addApplication() {
+        fetch('/add_application', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const applicationsContainer = document.querySelector('.job-applications');
+                
+                // Check if these are the initial placeholder entries
+                const emptyEntries = document.querySelectorAll('.job-entry');
+                const isFirstApplication = emptyEntries.length === 2 && 
+                    emptyEntries[0].textContent.includes('Click the + button') &&
+                    emptyEntries[1].textContent.includes('Your applications will appear here');
+                
+                // Clear the container if these are the initial placeholders
+                if (isFirstApplication) {
+                    applicationsContainer.innerHTML = '';
+                }
+                
+                // Create a new job card entry
+                const newEntry = document.createElement('div');
+                newEntry.className = 'job-entry job-card'; // Add job-card class
+                newEntry.innerHTML = `
+                    <div class="job-card-header">
+                        <div class="job-info">
+                            <h3 class="job-company">Google</h3>
+                            <p class="job-position">Graduate Software Engineer</p>
+                        </div>
+                        <div class="job-actions">
+                            <button class="job-action-btn" onclick="editApplication(this)">Edit</button>
+                            <button class="job-action-btn" id="job-action-btn-del" onclick="deleteApplication(this)">Delete</button>
+                        </div>
+                    </div>
+                    <div class="job-card-divider"></div>
+                    <div class="job-card-content">
+                        <div class="job-field">
+                            <span class="job-field-label">Location</span>
+                            <span class="job-field-value">Sydney</span>
+                        </div>
+                        <div class="job-field">
+                            <span class="job-field-label">Date Applied</span>
+                            <span class="job-field-value">07/10/2025</span>
+                        </div>
+                        <div class="job-field">
+                            <span class="job-field-label">Stage</span>
+                            <span class="job-field-value">Technical Interview</span>
+                        </div>
+                        <div class="job-field">
+                            <span class="job-field-label">Notes:</span>
+                            <span class="job-field-value">Lorem ipsum dolor sit amet. Ut dolor repellendus non...</span>
+                        </div>
+                    </div>
+                    <div class="job-status-indicator pending"></div>
+                `;
+                
+                // Add to the container
+                applicationsContainer.appendChild(newEntry);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+        
+    }
+</script>
+</html>
